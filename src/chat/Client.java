@@ -4,14 +4,18 @@ import java.io.DataInputStream;
 import java.io.DataOutputStream;
 import java.io.IOException;
 import java.net.Socket;
+import java.util.Properties;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import java.io.FileInputStream;
 
 public class Client extends javax.swing.JFrame {
 
     static Socket clientSocket;
     static DataInputStream inputStream;
     static DataOutputStream outputStream;
+    private static String serverIp;
+    private static final int SERVER_PORT = 4444;
 
     public Client() {
         initComponents();
@@ -103,9 +107,10 @@ public class Client extends javax.swing.JFrame {
     }
 
     public static void main(String[] args) {
+        loadConfiguration();
         java.awt.EventQueue.invokeLater(() -> new Client().setVisible(true));
 
-        try (var socket = new Socket("127.0.0.1", 4444);
+        try (var socket = new Socket(serverIp, SERVER_PORT);
              var dis = new DataInputStream(socket.getInputStream());
              var dos = new DataOutputStream(socket.getOutputStream())) {
 
@@ -120,6 +125,17 @@ public class Client extends javax.swing.JFrame {
             }
         } catch (IOException ex) {
             Logger.getLogger(Client.class.getName()).log(Level.SEVERE, null, ex);
+        }
+    }
+
+    private static void loadConfiguration() {
+        Properties properties = new Properties();
+        try (FileInputStream fis = new FileInputStream("config.properties")) {
+            properties.load(fis);
+            serverIp = properties.getProperty("serverIp", "127.0.0.1");
+        } catch (IOException ex) {
+            Logger.getLogger(Client.class.getName()).log(Level.SEVERE, null, ex);
+            serverIp = "127.0.0.1"; // default to localhost if config fails
         }
     }
 
