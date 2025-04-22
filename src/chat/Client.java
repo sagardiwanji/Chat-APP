@@ -132,7 +132,10 @@ public class Client extends javax.swing.JFrame {
         Properties properties = new Properties();
         try (FileInputStream fis = new FileInputStream("config.properties")) {
             properties.load(fis);
-            serverIp = properties.getProperty("serverIp", "127.0.0.1");
+            serverIp = properties.getProperty("serverIp", System.getenv("SERVER_IP"));
+            if (serverIp == null || serverIp.isEmpty()) {
+                serverIp = "127.0.0.1";
+            }
         } catch (IOException ex) {
             Logger.getLogger(Client.class.getName()).log(Level.SEVERE, null, ex);
             serverIp = "127.0.0.1"; // default to localhost if config fails
