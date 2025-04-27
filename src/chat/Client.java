@@ -105,7 +105,18 @@ public class Client extends javax.swing.JFrame {
     public static void main(String[] args) {
         java.awt.EventQueue.invokeLater(() -> new Client().setVisible(true));
 
-        try (var socket = new Socket("127.0.0.1", 4444);
+        Properties properties = new Properties();
+        try (FileInputStream fis = new FileInputStream("config.properties")) {
+            properties.load(fis);
+        } catch (IOException ex) {
+            Logger.getLogger(Client.class.getName()).log(Level.SEVERE, "Error loading configuration", ex);
+            return;
+        }
+
+        String serverIp = properties.getProperty("server.ip", "127.0.0.1");
+        int serverPort = Integer.parseInt(properties.getProperty("server.port", "4444"));
+
+        try (var socket = new Socket(serverIp, serverPort);
              var dis = new DataInputStream(socket.getInputStream());
              var dos = new DataOutputStream(socket.getOutputStream())) {
 
@@ -123,6 +134,7 @@ public class Client extends javax.swing.JFrame {
         }
     }
 
+    // Variables declaration
     private static javax.swing.JButton btsend;
     private javax.swing.JMenu jMenu1;
     private javax.swing.JMenu jMenu2;
