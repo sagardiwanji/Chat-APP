@@ -1,20 +1,26 @@
-package Login; 
-import java.io.DataInputStream; 
-import java.io.DataOutputStream; 
-import java.io.IOException; 
-import java.net.Socket; 
-import java.util.concurrent.Executors; 
-import java.util.concurrent.ExecutorService; 
-import java.util.logging.Level; 
-import java.util.logging.Logger; 
-public class Client extends javax.swing.JFrame { 
-    static Socket socket; 
-    static DataInputStream dis; 
-    static DataOutputStream dos; 
-    public Client() { 
-        initComponents(); 
-        this.getRootPane().setDefaultButton(btsend); 
-    } 
+package Login;
+
+import java.io.DataInputStream;
+import java.io.DataOutputStream;
+import java.io.IOException;
+import java.net.Socket;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ExecutorService;
+import java.util.logging.Level;
+import java.util.logging.Logger;
+import java.util.Properties;
+import java.io.FileInputStream;
+
+public class Client extends javax.swing.JFrame {
+    static Socket socket;
+    static DataInputStream dis;
+    static DataOutputStream dos;
+
+    public Client() {
+        initComponents();
+        this.getRootPane().setDefaultButton(btsend);
+    }
+
     @SuppressWarnings("unchecked") 
     // <editor-fold defaultstate="collapsed" desc="Generated Code">//GEN-BEGIN:initComponents 
     private void initComponents() { 
@@ -83,43 +89,55 @@ public class Client extends javax.swing.JFrame {
         ); 
         pack(); 
     }// </editor-fold>//GEN-END:initComponents 
-    private void btsendActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btsendActionPerformed 
-        try { 
-            //button send: 
-            dos.writeUTF(txtmes.getText().trim()); 
-            txtchat.append("\n tam : " + txtmes.getText().trim()); 
-            txtmes.setText(""); 
-        } catch (IOException ex) { 
-            Logger.getLogger(Client.class.getName()).log(Level.SEVERE, "Error sending message", ex); 
-        } 
-    }//GEN-LAST:event_btsendActionPerformed 
-    public static void main(String args[]) { 
-        java.awt.EventQueue.invokeLater(() -> new Client().setVisible(true)); 
-        ExecutorService executorService = Executors.newCachedThreadPool(); 
-        executorService.submit(() -> { 
-            var msg = ""; 
-            try { 
-                socket = new Socket("127.0.0.1", 4444); 
-                dis = new DataInputStream(socket.getInputStream()); 
-                dos = new DataOutputStream(socket.getOutputStream()); 
-                while (!msg.equals("end")) { 
-                    msg = dis.readUTF(); 
-                    txtchat.append("\n thinh : " + msg.trim()); 
-                } 
-            } catch (IOException ex) { 
-                Logger.getLogger(Client.class.getName()).log(Level.SEVERE, "Error in client main loop", ex); 
-            } 
-        }); 
-    } 
-    // Variables declaration - do not modify//GEN-BEGIN:variables 
-    private static javax.swing.JButton btsend; 
-    private javax.swing.JMenu jMenu1; 
-    private javax.swing.JMenu jMenu2; 
-    private javax.swing.JMenuBar jMenuBar1; 
-    private javax.swing.JPanel jPanel1; 
-    private javax.swing.JScrollPane jScrollPane1; 
-    private javax.swing.JScrollPane jScrollPane2; 
-    private static javax.swing.JTextArea txtchat; 
-    private static javax.swing.JTextArea txtmes; 
-    // End of variables declaration//GEN-END:variables 
+   private void btsendActionPerformed(java.awt.event.ActionEvent evt) {
+        try {
+            dos.writeUTF(txtmes.getText().trim());
+            txtchat.append("\n tam : " + txtmes.getText().trim());
+            txtmes.setText("");
+        } catch (IOException ex) {
+            Logger.getLogger(Client.class.getName()).log(Level.SEVERE, "Error sending message", ex);
+        }
+    }
+
+    public static void main(String args[]) {
+        java.awt.EventQueue.invokeLater(() -> new Client().setVisible(true));
+
+        Properties properties = new Properties();
+        try (FileInputStream fis = new FileInputStream("config.properties")) {
+            properties.load(fis);
+        } catch (IOException ex) {
+            Logger.getLogger(Client.class.getName()).log(Level.SEVERE, "Error loading configuration", ex);
+            return;
+        }
+
+        String serverIp = properties.getProperty("server.ip", "127.0.0.1");
+        int serverPort = Integer.parseInt(properties.getProperty("server.port", "4444"));
+
+        ExecutorService executorService = Executors.newCachedThreadPool();
+        executorService.submit(() -> {
+            var msg = "";
+            try {
+                socket = new Socket(serverIp, serverPort);
+                dis = new DataInputStream(socket.getInputStream());
+                dos = new DataOutputStream(socket.getOutputStream());
+                while (!msg.equals("end")) {
+                    msg = dis.readUTF();
+                    txtchat.append("\n thinh : " + msg.trim());
+                }
+            } catch (IOException ex) {
+                Logger.getLogger(Client.class.getName()).log(Level.SEVERE, "Error in client main loop", ex);
+            }
+        });
+    }
+
+    // Variables declaration
+    private static javax.swing.JButton btsend;
+    private javax.swing.JMenu jMenu1;
+    private javax.swing.JMenu jMenu2;
+    private javax.swing.JMenuBar jMenuBar1;
+    private javax.swing.JPanel jPanel1;
+    private javax.swing.JScrollPane jScrollPane1;
+    private javax.swing.JScrollPane jScrollPane2;
+    private static javax.swing.JTextArea txtchat;
+    private static javax.swing.JTextArea txtmes;
 }
